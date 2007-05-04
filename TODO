@@ -1,0 +1,13 @@
+· Finish replacing boilerplate documentation.
+
+· Get load_seasonality_history to handle errors/exceptions.
+
+· Add CSV parsing tests.
+
+· Add support for data points to be represented as hashes.
+
+· Be more flexible with the contents of CSV files.  (Add conversion functions.)
+
+· Create a Platypus wrapper?
+
+· Make the file command-line argument optional.
