@@ -1,4 +1,4 @@
-Mac::Apps::Seasonality::LoadICAOHistory version 0.0.4
+Mac::Apps::Seasonality::LoadICAOHistory version 0.0.5
 
 Seasonality (http://gauchosoft.com/Software/Seasonality/) is a weather
 tracking and display application for MacOS X.  This module provides a means of

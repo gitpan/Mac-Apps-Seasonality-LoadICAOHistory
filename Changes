@@ -1,5 +1,9 @@
 Revision history for Mac::Apps::Seasonality::LoadICAOHistory.
 
+0.0.5  Mon May  7 09:53:18 CDT 2007
+    Add ability to clean data to fit within Seasonality restrictions.
+    See the load_seasonality_history --clean option.
+
 0.0.4  Fri May  4 14:17:55 CDT 2007
     Initial CPAN release.
 

@@ -5,9 +5,9 @@ lib/Mac/Apps/Seasonality/LoadICAOHistory.pm
 lib/Mac/Apps/Seasonality/LoadICAOHistoryExceptions.pm
 lib/Mac/Apps/Seasonality/LoadICAOHistoryFromCSV.pm
 MANIFEST			This list of files
-META.yml
 README
 script/load_seasonality_history
+t/a_use_ok.t
 t/author/consistent_version_numbers.t
 t/author/copyright.t
 t/author/distribution.t
@@ -18,7 +18,10 @@ t/author/pod_coverage.t
 t/author/pod_spelling.t
 t/author/pod_syntax.t
 t/author/README
+t/b_clean_data.t
+t/b_validate_data.t
+t/c_load_data.t
+t/d_load_csv_data.t
 t/lib/Mac/Apps/Seasonality/TestUtilities.pm
-t/load_data.t
-t/validate_data.t
 TODO
+META.yml

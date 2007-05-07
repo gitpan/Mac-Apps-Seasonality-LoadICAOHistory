@@ -6,7 +6,7 @@ use strict;
 use warnings;
 use Carp;
 
-use version; our $VERSION = qv('v0.0.4');
+use version; our $VERSION = qv('v0.0.5');
 
 ## no critic (RestrictLongStrings)
 use Exception::Class (
@@ -59,7 +59,7 @@ various problems when dealing with ICAO history.
 =head1 VERSION
 
 This document describes Mac::Apps::Seasonality::LoadICAOHistoryExceptions
-version 0.0.4.
+version 0.0.5.
 
 
 =head1 SYNOPSIS
@@ -110,8 +110,8 @@ C<input_line_number>: The line number that the problematic data was found on.>
 
 =item C<Mac::Apps::Seasonality::ICAOHistory::CSVParseException>
 
-A problem with a line of text that is supposed to be in CSV format but actually
-isn't.
+A problem with a line of text that is supposed to be in CSV format but
+actually isn't.
 
 
 =item C<Mac::Apps::Seasonality::ICAOHistory::DataException>
@@ -182,8 +182,8 @@ This module I<is> nothing but diagnostics.
 
 =head1 CONFIGURATION AND ENVIRONMENT
 
-Mac::Apps::Seasonality::LoadICAOHistoryExceptions requires no configuration files or
-environment variables.
+Mac::Apps::Seasonality::LoadICAOHistoryExceptions requires no configuration
+files or environment variables.
 
 
 =head1 DEPENDENCIES
@@ -237,12 +237,12 @@ SOFTWARE AS PERMITTED BY THE ABOVE LICENSE, BE LIABLE TO YOU FOR DAMAGES,
 INCLUDING ANY GENERAL, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING
 OUT OF THE USE OR INABILITY TO USE THE SOFTWARE (INCLUDING BUT NOT LIMITED TO
 LOSS OF DATA OR DATA BEING RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR
-THIRD PARTIES OR A FAILURE OF THE SOFTWARE TO OPERATE WITH ANY OTHER SOFTWARE),
-EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
-DAMAGES.
+THIRD PARTIES OR A FAILURE OF THE SOFTWARE TO OPERATE WITH ANY OTHER
+SOFTWARE), EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGES.
 
 =cut
 
 # setup vim: set filetype=perl tabstop=4 softtabstop=4 expandtab :
-# setup vim: set shiftwidth=4 shiftround textwidth=0 nowrap autoindent :
+# setup vim: set shiftwidth=4 shiftround textwidth=78 nowrap autoindent :
 # setup vim: set foldmethod=indent foldlevel=0 :

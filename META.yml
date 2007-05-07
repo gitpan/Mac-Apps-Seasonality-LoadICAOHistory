@@ -1,6 +1,6 @@
 ---
 name: Mac-Apps-Seasonality-LoadICAOHistory
-version: v0.0.4
+version: v0.0.5
 author:
   - 'Elliot Shank <perl@galumph.com>'
 abstract: Load historical data into Seasonality (http://gauchosoft.com/Software/Seasonality/) from sources that it cannot handle itself.
@@ -28,6 +28,7 @@ build_requires:
 recommends:
   File::Find::Rule: 0
   File::Slurp: 0
+  IO::Scalar: 0
   Mac::Growl: 0
   Perl::Critic: 0
   Pod::Coverage::CountParents: 0
@@ -42,16 +43,16 @@ dynamic_config: 1
 provides:
   Mac::Apps::Seasonality::CommandLineUtilities:
     file: lib/Mac/Apps/Seasonality/CommandLineUtilities.pm
-    version: v0.0.4
+    version: v0.0.5
   Mac::Apps::Seasonality::LoadICAOHistory:
     file: lib/Mac/Apps/Seasonality/LoadICAOHistory.pm
-    version: v0.0.4
+    version: v0.0.5
   Mac::Apps::Seasonality::LoadICAOHistoryExceptions:
     file: lib/Mac/Apps/Seasonality/LoadICAOHistoryExceptions.pm
-    version: v0.0.4
+    version: v0.0.5
   Mac::Apps::Seasonality::LoadICAOHistoryFromCSV:
     file: lib/Mac/Apps/Seasonality/LoadICAOHistoryFromCSV.pm
-    version: v0.0.4
+    version: v0.0.5
 generated_by: Module::Build version 0.2808
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.2.html

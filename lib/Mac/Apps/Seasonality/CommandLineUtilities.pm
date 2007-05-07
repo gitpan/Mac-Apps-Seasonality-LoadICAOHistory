@@ -5,7 +5,7 @@ use 5.008006;
 use strict;
 use warnings;
 
-use version; our $VERSION = qv('v0.0.4');
+use version; our $VERSION = qv('v0.0.5');
 
 use English qw{ −no_match_vars };
 use Carp;
@@ -137,12 +137,7 @@ sub state_progress {
     my ($notification, $message) = @_;
 
     if (not $initialized) {
-        state_progress(
-            $GROWL_NOTIFICATION_ERROR,
-            $UNINITIALIZED_ERROR_STRING,
-        );
-
-        croak $EMPTY_STRING;
+        croak $UNINITIALIZED_ERROR_STRING;
     } # end if
 
     if ($quiet and $notification ne $GROWL_NOTIFICATION_ERROR) {
@@ -159,7 +154,7 @@ sub state_progress {
         );
     } # end if
 
-    print {*STDERR} $message, "\n";
+    print $message, "\n";
 
     return;
 } # end state_progress()
@@ -357,7 +352,7 @@ __END__
 
 =encoding utf8
 
-=for stopwords STDERR
+=for stopwords STDOUT
 
 =head1 NAME
 
@@ -368,7 +363,7 @@ command-line tools related to Seasonality.
 =head1 VERSION
 
 This document describes Mac::Apps::Seasonality::CommandLineUtilities version
-0.0.4.
+0.0.5.
 
 
 =head1 SYNOPSIS
@@ -440,9 +435,9 @@ This document describes Mac::Apps::Seasonality::CommandLineUtilities version
 This is a set of utilities for building applications which deal with
 Seasonality.  All functions expect that C<initialize_program_utilities()> has
 been called first.  Most functions will emit messages about what they're doing
-via C<state_progress()>.  This behavior can be disabled by passing a true value
-for the second parameter to C<initialize_program_utilities()>.  The
-C<state_progress()> function emits messages to STDERR and via Growl
+via C<state_progress()>.  This behavior can be disabled by passing a true
+value for the second parameter to C<initialize_program_utilities()>.  The
+C<state_progress()> function emits messages to STDOUT and via Growl
 notifications if L<Mac::Growl> is installed and the third parameter to
 C<initialize_program_utilities()> is a true value.
 
@@ -492,7 +487,7 @@ No useful value is returned.
 
 =item C<state_progress( $notification, $message )>
 
-Emits messages to STDERR and to Growl, if it is enabled.
+Emits messages to STDOUT and to Growl, if it is enabled.
 
 The C<$notification> parameter should be one of
 C<$GROWL_NOTIFICATION_PROGRESS>,
@@ -530,17 +525,17 @@ No useful value is returned.
 
 =item C<create_database_connection( $database_file_name, [ backup =E<gt> $boolean, ] )>
 
-Blah.
+TODO
 
 
 =item C<close_database_connection()>
 
-Blah.
+TODO
 
 
 =item C<restart_seasonality_if_necessary()>
 
-Blah.
+TODO
 
 
 =back
@@ -577,14 +572,14 @@ Import the functions.
 
 =item C<< No application name was given to initialize_program_utilities(). >>
 
-No arguments were given to C<initialize_program_utilities()> or the application
-name was empty.
+No arguments were given to C<initialize_program_utilities()> or the
+application name was empty.
 
 
 =item C<< Mac::Apps::Seasonality::CommandLineUtilities has not been initialized.  Call initialize_program_utilities() first. >>
 
-A function in this package was invoked before C<initialize_program_utilities()>
-was called.
+A function in this package was invoked before
+C<initialize_program_utilities()> was called.
 
 
 =item C<< Could not shut down Seasonality: $EXTENDED_OS_ERROR >>
@@ -597,8 +592,8 @@ reason.
 
 A call was made to C<create_database_connection()> with the path to the
 database not existing or not being writable.  All database files should be
-created by Seasonality in order to ensure that it doesn't run into any problems
-with them.
+created by Seasonality in order to ensure that it doesn't run into any
+problems with them.
 
 
 =item C<< Could not copy "%s" to "%s": $OS_ERROR >>
@@ -636,15 +631,6 @@ None reported.
 
 
 =head1 BUGS AND LIMITATIONS
-
-=for author to fill in:
-    A list of known problems with the module, together with some
-    indication Whether they are likely to be fixed in an upcoming
-    release. Also a list of restrictions on the features the module
-    does provide: data types that cannot be handled, performance issues
-    and the circumstances in which they may arise, practical
-    limitations on the size of data sets, special cases that are not
-    (yet) handled, etc.
 
 No bugs have been reported.
 
@@ -684,12 +670,12 @@ SOFTWARE AS PERMITTED BY THE ABOVE LICENSE, BE LIABLE TO YOU FOR DAMAGES,
 INCLUDING ANY GENERAL, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING
 OUT OF THE USE OR INABILITY TO USE THE SOFTWARE (INCLUDING BUT NOT LIMITED TO
 LOSS OF DATA OR DATA BEING RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR
-THIRD PARTIES OR A FAILURE OF THE SOFTWARE TO OPERATE WITH ANY OTHER SOFTWARE),
-EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
-DAMAGES.
+THIRD PARTIES OR A FAILURE OF THE SOFTWARE TO OPERATE WITH ANY OTHER
+SOFTWARE), EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGES.
 
 =cut
 
 # setup vim: set filetype=perl tabstop=4 softtabstop=4 expandtab :
-# setup vim: set shiftwidth=4 shiftround textwidth=0 nowrap autoindent :
+# setup vim: set shiftwidth=4 shiftround textwidth=78 nowrap autoindent :
 # setup vim: set foldmethod=indent foldlevel=0 :

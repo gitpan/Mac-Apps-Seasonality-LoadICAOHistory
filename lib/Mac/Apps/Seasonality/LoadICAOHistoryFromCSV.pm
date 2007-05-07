@@ -6,22 +6,28 @@ use strict;
 use warnings;
 use Carp;
 
-use version; our $VERSION = qv('v0.0.4');
+use version; our $VERSION = qv('v0.0.5');
 
 use Exporter qw( import );
 
 our @EXPORT_OK =
     qw{
-        load_icao_history_from_csv_handle
+        &clean_icao_history_set
+        &load_icao_history_from_csv_handle
     };
 
 use Text::CSV_XS;
 
-use Mac::Apps::Seasonality::LoadICAOHistory qw{ load_icao_history };
+use Mac::Apps::Seasonality::LoadICAOHistory qw{
+    &clean_icao_history_set
+    &load_icao_history
+};
 use Mac::Apps::Seasonality::LoadICAOHistoryExceptions;
 
 sub load_icao_history_from_csv_handle {
-    my ($database_handle, $io_handle) = @_;
+    my ($database_handle, $io_handle, %options) = @_;
+    my $clean = $options{clean};
+    my $clean_message_handle = $options{clean_message_handle};
 
     my $parser = Text::CSV_XS->new();
 
@@ -50,6 +56,16 @@ sub load_icao_history_from_csv_handle {
         );
     } # end if
 
+    if ($clean) {
+        my @clean_messages = clean_icao_history_set( $data_set_ref );
+
+        if ($clean_message_handle) {
+            foreach my $message (@clean_messages) {
+                $clean_message_handle->say( $message );
+            } # end foreach
+        } # end if
+    } # end if
+
     load_icao_history($database_handle, $data_set_ref);
 
     return scalar @{$data_set_ref};
@@ -64,14 +80,14 @@ __END__
 
 =head1 NAME
 
-Mac::Apps::Seasonality::LoadICAOHistoryFromCSV - Load data from a CSV file into
-Seasonality's database.
+Mac::Apps::Seasonality::LoadICAOHistoryFromCSV - Load data from a CSV file
+into Seasonality's database.
 
 
 =head1 VERSION
 
-This document describes Mac::Apps::Seasonality::LoadICAOHistoryFromCSV
-version 0.0.4.
+This document describes Mac::Apps::Seasonality::LoadICAOHistoryFromCSV version
+0.0.5.
 
 
 =head1 SYNOPSIS
@@ -80,8 +96,7 @@ version 0.0.4.
     use Fatal qw{ open close read write };
     use IO::File;
     use DBI;
-    use Mac::Apps::Seasonality::LoadICAOHistoryFromCSV
-        qw{ load_icao_history_from_csv_handle };
+    use Mac::Apps::Seasonality::LoadICAOHistoryFromCSV qw{ &load_icao_history_from_csv_handle };
     use Mac::Apps::Seasonality::Exceptions;
 
     my $file_handle = IO::File->new('data.csv', 'r');
@@ -97,7 +112,14 @@ version 0.0.4.
             }
         );
 
-    eval { load_icao_history_from_csv_handle($database_connection, $file_handle) };
+    eval { 
+        load_icao_history_from_csv_handle(
+            $database_connection,
+            $file_handle,
+            clean => 1,
+            clean_message_handle => \*STDOUT,
+        )
+    };
 
     my $exception
     if ($exception = Mac::Apps::Seasonality::CSVParseException->caught()) {
@@ -111,19 +133,18 @@ version 0.0.4.
 
 =head1 DESCRIPTION
 
-=for author to fill in:
-    Write a full description of the module and its features here.
-    Use subsections (=head2, =head3) as appropriate.
+Provides functions for reading ICAO data from comma separated values (CSV)
+files.
 
 
 =head1 INTERFACE
 
 =over
 
-=item load_icao_history_from_csv_handle($database_connection, $io_handle)
+=item C<load_icao_history_from_csv_handle($database_connection, $io_handle, %options)>
 
-Takes a reference to a DBI handle and to an I/O handle referring to data in CSV
-format and loads the data from the handle into the database.
+Takes a reference to a DBI handle and to an I/O handle referring to data in
+CSV format and loads the data from the handle into the database.
 
 C<$database_connection> must be an open handle to an SQLite2 database with
 Seasonality's schema.  This handle must have the RaiseError option set on it;
@@ -131,10 +152,10 @@ this module does no error checking of database actions on its own.
 
 C<$io_handle> must be an open handle to data in CSV format, with the data on
 each line in the order described in the documentation for
-L<Mac::Apps::Seasonality::LoadICAOHistory/load_icao_history>.  No checking is
-done for I/O errors, so the use of the Fatal module is highly suggested.  The
-data read from this handle must not contain anything other than the actual data
-to be loaded.  In particular, this means that there cannot be any column
+L<Mac::Apps::Seasonality::LoadICAOHistory/"load_icao_history">.  No checking
+is done for I/O errors, so the use of the Fatal module is highly suggested.
+The data read from this handle must not contain anything other than the actual
+data to be loaded.  In particular, this means that there cannot be any column
 headers.
 
 If no problems are encountered, the number of data points loaded is returned.
@@ -145,40 +166,35 @@ be turned into the module's internal representation.
 A Mac::Apps::Seasonality::InvalidDatumException is thrown if an individual
 value does not fit the constraints required by Seasonality.
 
+
+B<Options:>
+
+=over
+
+=item C<clean>
+
+A boolean value indicating whether
+L<Mac::Apps::Seasonality::LoadICAOHistory/"clean_icao_history_set"> should be
+invoked after reading the file but before actually loading the data.
+
+=item C<clean_message_handle>
+
+A reference to a file handle to write any messages about cleaned up data to.
+If C<clean> is specified, but this is not, then the data will still be cleaned
+but there be no indication of any problems found emitted.
+
+=back
+
+
 =back
 
 
 =head1 DIAGNOSTICS
 
-=for author to fill in:
-    List every single error and warning message that the module can
-    generate (even the ones that will "never happen"), with a full
-    explanation of each problem, one or more likely causes, and any
-    suggested remedies.
-
-=over
-
-=item C<< Error message here, perhaps with %s placeholders >>
-
-[Description of error here]
-
-=item C<< Another error message here >>
-
-[Description of error here]
-
-[Et cetera, et cetera]
-
-=back
+TODO
 
 
 =head1 CONFIGURATION AND ENVIRONMENT
-
-=for author to fill in:
-    A full explanation of any configuration system(s) used by the
-    module, including the names and locations of any configuration
-    files, and the meaning of any environment variables or properties
-    that can be set. These descriptions must also include details of any
-    configuration language used.
 
 Mac::Apps::Seasonality::LoadICAOHistoryFromCSV requires no configuration files
 or environment variables.
@@ -186,13 +202,7 @@ or environment variables.
 
 =head1 DEPENDENCIES
 
-=for author to fill in:
-    A list of all the other modules that this module relies upon,
-    including any restrictions on versions, and an indication whether
-    the module is part of the standard Perl distribution, part of the
-    module's distribution, or must be installed separately. ]
-
-None.
+L<Text::CSV_XS>
 
 
 =head1 INCOMPATIBILITIES
@@ -201,15 +211,6 @@ None reported.
 
 
 =head1 BUGS AND LIMITATIONS
-
-=for author to fill in:
-    A list of known problems with the module, together with some
-    indication Whether they are likely to be fixed in an upcoming
-    release. Also a list of restrictions on the features the module
-    does provide: data types that cannot be handled, performance issues
-    and the circumstances in which they may arise, practical
-    limitations on the size of data sets, special cases that are not
-    (yet) handled, etc.
 
 No bugs have been reported.
 
@@ -249,12 +250,12 @@ SOFTWARE AS PERMITTED BY THE ABOVE LICENSE, BE LIABLE TO YOU FOR DAMAGES,
 INCLUDING ANY GENERAL, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING
 OUT OF THE USE OR INABILITY TO USE THE SOFTWARE (INCLUDING BUT NOT LIMITED TO
 LOSS OF DATA OR DATA BEING RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR
-THIRD PARTIES OR A FAILURE OF THE SOFTWARE TO OPERATE WITH ANY OTHER SOFTWARE),
-EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
-DAMAGES.
+THIRD PARTIES OR A FAILURE OF THE SOFTWARE TO OPERATE WITH ANY OTHER
+SOFTWARE), EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGES.
 
 =cut
 
 # setup vim: set filetype=perl tabstop=4 softtabstop=4 expandtab :
-# setup vim: set shiftwidth=4 shiftround textwidth=0 nowrap autoindent :
+# setup vim: set shiftwidth=4 shiftround textwidth=78 nowrap autoindent :
 # setup vim: set foldmethod=indent foldlevel=0 :
