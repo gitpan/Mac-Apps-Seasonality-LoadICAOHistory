@@ -6,12 +6,17 @@ use strict;
 use warnings;
 use Carp;
 
-use version; our $VERSION = qv('v0.0.5');
+use version; our $VERSION = qv('v0.0.6');
 
 ## no critic (RestrictLongStrings)
 use Exception::Class (
     'Mac::Apps::Seasonality::LoadICAOHistoryException' => {
         description => 'A problem with dealing with ICAO history.',
+    },
+
+    'Mac::Apps::Seasonality::InvalidParameterException' => {
+        isa         => 'Mac::Apps::Seasonality::LoadICAOHistoryException',
+        description => 'A subroutine was called with an invalide parameter value.',
     },
 
     'Mac::Apps::Seasonality::ValidationException' => {
@@ -59,7 +64,7 @@ various problems when dealing with ICAO history.
 =head1 VERSION
 
 This document describes Mac::Apps::Seasonality::LoadICAOHistoryExceptions
-version 0.0.5.
+version 0.0.6.
 
 
 =head1 SYNOPSIS
@@ -69,7 +74,7 @@ version 0.0.5.
  eval { ... };
 
  my $exception;
- if ($exception = Mac::Apps::Seasonality::ICAOHistory::InvalidDatumException->caught()) {
+ if ($exception = Mac::Apps::Seasonality::InvalidDatumException->caught()) {
     ... $exception->column_name ...
  } # end if
 
@@ -86,14 +91,18 @@ The exception hierarchy.
 
 =over
 
-=item C<Mac::Apps::Seasonality::ICAOHistory::LoadICAOHistoryException>
+=item C<Mac::Apps::Seasonality::LoadICAOHistoryException>
 
 Base exception class with no behavior beyond that supplied by
 L<Exception::Class>.
 
 =over
 
-=item C<Mac::Apps::Seasonality::ICAOHistory::ValidationException>
+=item C<Mac::Apps::Seasonality::InvalidParameterException>
+
+A subroutine was invoked with an invalid parameter.
+
+=item C<Mac::Apps::Seasonality::ValidationException>
 
 A problem with input ICAO history data.
 
@@ -108,13 +117,13 @@ C<input_line_number>: The line number that the problematic data was found on.>
 
 =over
 
-=item C<Mac::Apps::Seasonality::ICAOHistory::CSVParseException>
+=item C<Mac::Apps::Seasonality::CSVParseException>
 
 A problem with a line of text that is supposed to be in CSV format but
 actually isn't.
 
 
-=item C<Mac::Apps::Seasonality::ICAOHistory::DataException>
+=item C<Mac::Apps::Seasonality::DataException>
 
 A problem with the input (post parsing from CSV) that is supposed to represent
 one data point.
@@ -131,7 +140,7 @@ point, in the order of the columns in the icao_history database table.
 
 =over
 
-=item C<Mac::Apps::Seasonality::ICAOHistory::InvalidDataSizeException>
+=item C<Mac::Apps::Seasonality::InvalidDataSizeException>
 
 An array that is supposed to represent one data point has too much or too
 little data in it.
@@ -147,7 +156,7 @@ C<actual_number_of_elements>: How many items there were.
 =back
 
 
-=item C<Mac::Apps::Seasonality::ICAOHistory::InvalidDatumException>
+=item C<Mac::Apps::Seasonality::InvalidDatumException>
 
 An individual data item is not valid for the aspect of a data point it
 represents.

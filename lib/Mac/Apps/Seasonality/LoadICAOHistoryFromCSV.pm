@@ -6,28 +6,112 @@ use strict;
 use warnings;
 use Carp;
 
-use version; our $VERSION = qv('v0.0.5');
+use version; our $VERSION = qv('v0.0.6');
 
 use Exporter qw( import );
 
 our @EXPORT_OK =
     qw{
-        &clean_icao_history_set
+        %DEFAULT_UNITS
+        %ALLOWED_UNITS
         &load_icao_history_from_csv_handle
     };
 
+use Readonly;
 use Text::CSV_XS;
 
+use Mac::Apps::Seasonality::Constants qw{ :database };
 use Mac::Apps::Seasonality::LoadICAOHistory qw{
+    :conversion
     &clean_icao_history_set
     &load_icao_history
 };
 use Mac::Apps::Seasonality::LoadICAOHistoryExceptions;
 
+Readonly my %CONVERSIONS => (
+    temperature_units => {
+        f           => \&convert_from_fahrenheit_to_celsius,
+        fahrenheit  => \&convert_from_fahrenheit_to_celsius,
+        c           => \&_passthrough,
+        celsius     => \&_passthrough,
+    },
+    pressure_units => {
+        iHg                 => \&convert_from_inches_of_mercury_to_hectopascals,
+        inches_Hg           => \&convert_from_inches_of_mercury_to_hectopascals,
+        inches_of_mercury   => \&convert_from_inches_of_mercury_to_hectopascals,
+        millibars           => \&_passthrough,
+        hectopascals        => \&_passthrough,
+    },
+    wind_speed_units => {
+        mph             => \&convert_from_miles_per_hour_to_knots,
+        miles_per_hour  => \&convert_from_miles_per_hour_to_knots,
+        knots           => \&_passthrough,
+    },
+);
+
+Readonly our %DEFAULT_UNITS => (
+    temperature_units => 'celsius',
+    pressure_units => 'hectopascals',
+    wind_speed_units => 'knots',
+);
+
+Readonly our %ALLOWED_UNITS => (
+    temperature_units => {
+        _hashify( keys %{ $CONVERSIONS{temperature_units} } )
+    },
+    pressure_units => {
+        _hashify( keys %{ $CONVERSIONS{pressure_units} } )
+    },
+    wind_speed_units => {
+        _hashify( keys %{ $CONVERSIONS{wind_speed_units} } )
+    },
+);
+
+
 sub load_icao_history_from_csv_handle {
     my ($database_handle, $io_handle, %options) = @_;
     my $clean = $options{clean};
     my $clean_message_handle = $options{clean_message_handle};
+
+    my $data_set_ref = _build_data_set($database_handle, $io_handle);
+
+    if (
+            $options{temperature_units}
+        or  $options{pressure_units}
+        or  $options{wind_speed_units}
+    ) {
+        _convert_units( $data_set_ref, %options );
+    } # end if
+
+    if ($clean) {
+        my @clean_messages = clean_icao_history_set( $data_set_ref );
+
+        if ($clean_message_handle) {
+            foreach my $message (@clean_messages) {
+                $clean_message_handle->say( $message );
+            } # end foreach
+        } # end if
+    } # end if
+
+    load_icao_history($database_handle, $data_set_ref);
+
+    return scalar @{$data_set_ref};
+} # end load_icao_history_from_csv_handle()
+
+sub _hashify {
+    return map { $_ => 1 } @_;
+} # end _hashify()
+
+sub _passthrough {
+    if ( wantarray ) {
+        return @_;
+    } # end if
+
+    return $_[0];
+} # end _passthrough()
+
+sub _build_data_set {
+    my ($database_handle, $io_handle) = @_;
 
     my $parser = Text::CSV_XS->new();
 
@@ -56,21 +140,78 @@ sub load_icao_history_from_csv_handle {
         );
     } # end if
 
-    if ($clean) {
-        my @clean_messages = clean_icao_history_set( $data_set_ref );
+    return $data_set_ref;
+} # end _build_data_set
 
-        if ($clean_message_handle) {
-            foreach my $message (@clean_messages) {
-                $clean_message_handle->say( $message );
-            } # end foreach
-        } # end if
+sub _get_conversion {
+    my ($unit_type, $input_units) = @_;
+
+    $input_units ||= $DEFAULT_UNITS{$unit_type};
+
+    my $conversion = $CONVERSIONS{$unit_type}->{$input_units};
+
+    if (not $conversion) {
+        Mac::Apps::Seasonality::InvalidParameterException->throw(
+            message => "Invalid value for $unit_type: $input_units."
+        );
     } # end if
 
-    load_icao_history($database_handle, $data_set_ref);
+    return $conversion
+} # end _get_conversion
 
-    return scalar @{$data_set_ref};
-} # end load_icao_history_from_csv_handle()
+sub _convert_units {
+    my ($data_set_ref, %options) = @_;
 
+    my $temperature_conversion =
+        _get_conversion(temperature_units => $options{temperature_units});
+    my $pressure_conversion =
+        _get_conversion(pressure_units => $options{pressure_units});
+    my $wind_speed_conversion =
+        _get_conversion(wind_speed_units => $options{wind_speed_units});
+
+    foreach my $point ( @{ $data_set_ref } ) {
+        _convert_column_units(
+            $temperature_conversion,
+            $point,
+            $SEASONALITY_HISTORY_COLUMN_TEMPERATURE_C,
+        );
+        _convert_column_units(
+            $temperature_conversion,
+            $point,
+            $SEASONALITY_HISTORY_COLUMN_DEWPOINT_C,
+        );
+
+        _convert_column_units(
+            $pressure_conversion,
+            $point,
+            $SEASONALITY_HISTORY_COLUMN_PRESSURE_HPA,
+        );
+
+        _convert_column_units(
+            $wind_speed_conversion,
+            $point,
+            $SEASONALITY_HISTORY_COLUMN_WIND_SPEED_KNOTS,
+        );
+        _convert_column_units(
+            $wind_speed_conversion,
+            $point,
+            $SEASONALITY_HISTORY_COLUMN_GUST_SPEED_KNOTS,
+        );
+    } # end foreach
+
+    return;
+} # end _convert_units()
+
+sub _convert_column_units {
+    my ($conversion, $point, $column_name) = @_;
+
+    my $column_number =
+        $SEASONALITY_HISTORY_COLUMN_NUMBERS_BY_COLUMN_NAME_REF->{$column_name};
+
+    $point->[$column_number] = $conversion->( $point->[$column_number] );
+
+    return;
+} # end _convert_column()
 
 1; # Magic true value required at end of module
 
@@ -87,7 +228,7 @@ into Seasonality's database.
 =head1 VERSION
 
 This document describes Mac::Apps::Seasonality::LoadICAOHistoryFromCSV version
-0.0.5.
+0.0.6.
 
 
 =head1 SYNOPSIS
@@ -141,6 +282,11 @@ files.
 
 =over
 
+=item C<%ALLOWED_UNITS>
+
+The set of presently allowed input units, keyed by
+C<load_icao_history_from_csv_handle()> option name.
+
 =item C<load_icao_history_from_csv_handle($database_connection, $io_handle, %options)>
 
 Takes a reference to a DBI handle and to an I/O handle referring to data in
@@ -160,11 +306,14 @@ headers.
 
 If no problems are encountered, the number of data points loaded is returned.
 
-A Mac::Apps::Seasonality::CSVParseException is thrown if the raw input cannot
+A C<Mac::Apps::Seasonality::CSVParseException> is thrown if the raw input cannot
 be turned into the module's internal representation.
 
-A Mac::Apps::Seasonality::InvalidDatumException is thrown if an individual
+A C<Mac::Apps::Seasonality::InvalidDatumException> is thrown if an individual
 value does not fit the constraints required by Seasonality.
+
+A C<Mac::Apps::Seasonality::InvalidParameterException> is thrown if one of the
+options is not valid, e.g. if C<temperature_units> is specified as 'kelvin'.
 
 
 B<Options:>
@@ -177,11 +326,28 @@ A boolean value indicating whether
 L<Mac::Apps::Seasonality::LoadICAOHistory/"clean_icao_history_set"> should be
 invoked after reading the file but before actually loading the data.
 
+
 =item C<clean_message_handle>
 
 A reference to a file handle to write any messages about cleaned up data to.
 If C<clean> is specified, but this is not, then the data will still be cleaned
 but there be no indication of any problems found emitted.
+
+
+=item C<temperature_units>
+
+The units that the temperature columns are in.  Defaults to C<celcius>.
+
+
+=item C<pressure_units>
+
+The units that the pressure column is in.  Defaults to C<hectopascals>.
+
+
+=item C<wind_speed_units>
+
+The units that the wind speed columns are in.  Defaults to C<knots>.
+
 
 =back
 

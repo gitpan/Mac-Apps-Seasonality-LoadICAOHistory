@@ -6,7 +6,7 @@ use strict;
 use warnings;
 use Carp;
 
-use version; our $VERSION = qv('v0.0.5');
+use version; our $VERSION = qv('v0.0.6');
 
 use Exporter qw( import );
 
@@ -83,6 +83,8 @@ our %EXPORT_TAGS    = (
     ],
 );
 
+use Readonly;
+
 use DBI qw{ :sql_types };
 use Regexp::Common;
 
@@ -90,6 +92,8 @@ use Mac::Apps::Seasonality::Constants qw{ :database :data };
 use Mac::Apps::Seasonality::LoadICAOHistoryExceptions;
 
 
+Readonly my $FAHRENHEIT_CELSIUS_OFFSET => 32.0;
+Readonly my $FAHRENHEIT_CELSIUS_FACTOR => 5.0 / 9.0;
 sub convert_from_fahrenheit_to_celsius {
     my ($fahrenheit) = @_;
 
@@ -97,9 +101,12 @@ sub convert_from_fahrenheit_to_celsius {
     return $fahrenheit if q{} eq $fahrenheit;
     return $fahrenheit if $SEASONALITY_INVALID_DATA == $fahrenheit;
 
-    return ($fahrenheit - 32.0) * 5.0 / 9.0;
+    return
+            ($fahrenheit - $FAHRENHEIT_CELSIUS_OFFSET)
+        *   $FAHRENHEIT_CELSIUS_FACTOR;
 } # end convert_from_fahrenheit_to_celsius()
 
+Readonly my $HECTOPASCALS_PER_INCH_OF_MERCURY => 33.863886667;
 sub convert_from_inches_of_mercury_to_hectopascals {
     my ($inches) = @_;
 
@@ -107,9 +114,10 @@ sub convert_from_inches_of_mercury_to_hectopascals {
     return $inches if q{} eq $inches;
     return $inches if $SEASONALITY_INVALID_DATA == $inches;
 
-    return $inches * 33.863886667;
+    return $inches * $HECTOPASCALS_PER_INCH_OF_MERCURY;
 } # end convert_from_inches_of_mercury_to_hectopascals()
 
+Readonly my $KNOTS_PER_MILES_PER_HOUR => 0.868_976_242;
 sub convert_from_miles_per_hour_to_knots {
     my ($mph) = @_;
 
@@ -117,7 +125,7 @@ sub convert_from_miles_per_hour_to_knots {
     return $mph if q{} eq $mph;
     return $mph if $SEASONALITY_INVALID_DATA == $mph;
 
-    return $mph * 0.868976242;
+    return $mph * $KNOTS_PER_MILES_PER_HOUR;
 } # end convert_from_miles_per_hour_to_knots()
 
 sub clean_icao_history_set {
@@ -538,6 +546,7 @@ sub _check_basic_history_point_validity {
     return;
 } # end _check_basic_history_point_validity()
 
+Readonly my $ROUND_UP_POINT => 0.5;
 sub _clean_integer {
     my (
         $icao_history_point_ref,
@@ -560,7 +569,7 @@ sub _clean_integer {
         my $real_column_number = $column_number - 1;
 
         if ($metric_value =~ m/\A $RE{num}{real} \z/xms) {
-            my $int_value = int $metric_value + 0.5;
+            my $int_value = int $metric_value + $ROUND_UP_POINT;
             $icao_history_point_ref->[ $real_column_number ] = $int_value;
 
             push
@@ -942,7 +951,7 @@ with the Seasonality weather.db schema.
 
 =head1 VERSION
 
-This document describes Mac::Apps::Seasonality::LoadICAOHistory version 0.0.5.
+This document describes Mac::Apps::Seasonality::LoadICAOHistory version 0.0.6.
 
 
 =head1 SYNOPSIS

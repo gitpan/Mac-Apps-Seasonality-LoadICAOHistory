@@ -23,6 +23,10 @@ language = en_US
 [ValuesAndExpressions::ProhibitMagicNumbers]
 severity = 4
 
+# For some reason, this chokes on v-strings within a version constructor
+# and I don't have time to chase this down.
+[-Modules::PerlMinimumVersion]
+
 # setup vim: set filetype=conf tabstop=4 softtabstop=4 expandtab :
 # setup vim: set shiftwidth=4 shiftround textwidth=78 nowrap autoindent :
 # setup vim: set foldmethod=indent foldlevel=0 :

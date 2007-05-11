@@ -1,5 +1,10 @@
 Revision history for Mac::Apps::Seasonality::LoadICAOHistory.
 
+0.0.6  Fri May 11 01:46:20 CDT 2007
+    Add support for unit conversions.  See '--temperature-units',
+    '--pressure-units', and '--wind-speed-units' on
+    load_seasonality_history.
+
 0.0.5  Mon May  7 09:53:18 CDT 2007
     Add ability to clean data to fit within Seasonality restrictions.
     See the load_seasonality_history --clean option.

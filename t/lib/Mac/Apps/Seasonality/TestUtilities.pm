@@ -3,7 +3,7 @@ package Mac::Apps::Seasonality::TestUtilities;
 use strict;
 use warnings;
 
-use version; our $VERSION = qv('v0.0.5');
+use version; our $VERSION = qv('v0.0.6');
 
 use English qw{ -no_match_vars };
 use Fatal qw{ :void close };
@@ -190,7 +190,7 @@ loading data into Seasonality's weather.db.
 
 =head1 VERSION
 
-This document describes Mac::Apps::Seasonality::TestUtilities version 0.0.5.
+This document describes Mac::Apps::Seasonality::TestUtilities version 0.0.6.
 
 
 =head1 SYNOPSIS

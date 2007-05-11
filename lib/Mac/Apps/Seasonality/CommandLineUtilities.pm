@@ -5,7 +5,7 @@ use 5.008006;
 use strict;
 use warnings;
 
-use version; our $VERSION = qv('v0.0.5');
+use version; our $VERSION = qv('v0.0.6');
 
 use English qw{ −no_match_vars };
 use Carp;
@@ -363,7 +363,7 @@ command-line tools related to Seasonality.
 =head1 VERSION
 
 This document describes Mac::Apps::Seasonality::CommandLineUtilities version
-0.0.5.
+0.0.6.
 
 
 =head1 SYNOPSIS

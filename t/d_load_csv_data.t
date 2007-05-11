@@ -47,7 +47,19 @@ eval {
     my $test_data_ref = build_test_data();
     my $io_handle = create_io_scalar_from_test_data($test_data_ref);
 
-    load_icao_history_from_csv_handle($database_connection, $io_handle);
+    my $clean_handle = IO::File->new('/dev/null', 'w');
+
+    load_icao_history_from_csv_handle(
+        $database_connection,
+        $io_handle,
+        clean => 1,                         # Test with options
+        clean_message_handle => $clean_handle,
+        temperature_units => 'celsius',
+        pressure_units => 'hectopascals',
+        wind_speed_units => 'knots',
+    );
+
+    $clean_handle = undef;
 
     # TEST*3
     foreach my $test_point_ref ( @{$test_data_ref} ) {
@@ -64,7 +76,10 @@ eval {
     } # end foreach
 
     $io_handle = create_io_scalar_from_test_data($test_data_ref);
-    load_icao_history_from_csv_handle($database_connection, $io_handle);
+    load_icao_history_from_csv_handle(
+        $database_connection,
+        $io_handle,                         # Test without options
+    );
 
     # TEST*3
     foreach my $test_point_ref (@{$test_data_ref}) {
